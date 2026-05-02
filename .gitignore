@@ -1,0 +1,43 @@
+# ─── Environment & Secrets ───────────────────────
+.env
+.env.*
+!.env.example
+
+# ─── N8n data ────────────────────────────────────
+n8n_data/
+.n8n/
+
+# ─── Database volumes ────────────────────────────
+postgres_data/
+pgdata/
+
+# ─── OS artifacts ────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── Editor configs ──────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ─── Node (if a JS build step is added later) ────
+node_modules/
+dist/
+.npm/
+
+# ─── Python (if scripts are added) ───────────────
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# ─── Logs ────────────────────────────────────────
+*.log
+logs/
+
+# ─── Docker build cache ──────────────────────────
+.dockerignore
