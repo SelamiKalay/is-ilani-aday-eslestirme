@@ -1,57 +1,58 @@
-# İş İlanı – Aday Eşleştirme Motoru
+# Job Posting – Candidate Matching Engine
 
-n8n iş akışı otomasyonu üzerine kurulu, yapay zekâ destekli bir iş ilanı ve aday
-eşleştirme sistemi. Adayların CV'leri ve iş ilanları vektörlere dönüştürülür,
-anlamsal benzerliğe göre eşleştirilir ve uygun adaylara Gemini ile üretilmiş
-açıklamalı bir e-posta gönderilir. Tüm bileşenler Docker üzerinde, kendi
-sunucunuzda çalışır.
+**English** | [Türkçe](README.tr.md)
 
-## Mimari
+An AI-powered job posting and candidate matching system built on n8n workflow
+automation. Candidate CVs and job postings are converted into vectors, matched by
+semantic similarity, and suitable candidates receive an explanatory e-mail
+generated with Gemini. All components run on Docker, on your own server.
+
+## Architecture
 
 ```
-Web arayüzü (nginx) ──► n8n webhook'ları ──► Ollama (nomic-embed-text, 768 boyut)
-                                   │
-                                   ▼
-                     PostgreSQL + pgvector (adaylar, ilanlar, eşleşmeler)
-                                   │
-            Her gün 09:00 ─► kosinüs benzerliği ≥ 0.75 ─► Gemini 2.5 Flash ─► Gmail SMTP
+Web UI (nginx) ──► n8n webhooks ──► Ollama (nomic-embed-text, 768 dimensions)
+                          │
+                          ▼
+            PostgreSQL + pgvector (candidates, jobs, matches)
+                          │
+   Daily at 09:00 ─► cosine similarity ≥ 0.75 ─► Gemini 2.5 Flash ─► Gmail SMTP
 ```
 
-| Bileşen | Görev |
+| Component | Role |
 |---|---|
-| **n8n** | Webhook tabanlı kayıt/listeleme akışları ve zamanlanmış eşleştirme akışı |
-| **PostgreSQL + pgvector** | CV ve ilan vektörlerinin saklanması, benzerlik sorguları |
-| **Ollama** | Yerel embedding modeli |
-| **Google Gemini** | CV/ilan özetleri ve eşleşme açıklaması üretimi |
-| **Frontend** | Aday ve ilan kaydı, eşleşmelerin listelenmesi |
+| **n8n** | Webhook-based registration/listing flows and the scheduled matching flow |
+| **PostgreSQL + pgvector** | Storing CV and job vectors, similarity queries |
+| **Ollama** | Local embedding model |
+| **Google Gemini** | CV/job summaries and match explanations |
+| **Frontend** | Candidate and job registration, listing matches |
 
-## Webhook Uç Noktaları
+## Webhook Endpoints
 
 `register-candidate`, `register-job`, `list-candidates`, `list-jobs`, `list-matches`
-— tümü `X-API-Key` başlığı ile korunur.
+— all protected with an `X-API-Key` header.
 
-## Kurulum
+## Setup
 
-Gereksinimler: Docker Desktop, Ollama, 2 adımlı doğrulaması açık bir Gmail hesabı
-(SMTP uygulama şifresi için) ve bir Gemini API anahtarı.
+Requirements: Docker Desktop, Ollama, a Gmail account with 2-step verification
+enabled (for an SMTP app password) and a Gemini API key.
 
 ```bash
 ollama pull nomic-embed-text
-cp .env.example .env        # değerleri kendi bilgilerinizle doldurun
+cp .env.example .env        # fill in your own values
 docker compose up -d
 ```
 
-| Servis | Adres |
+| Service | Address |
 |---|---|
-| Web arayüzü | http://localhost:3000 |
+| Web UI | http://localhost:3000 |
 | n8n | http://localhost:5678 |
 | PostgreSQL | localhost:5432 |
 
-Veritabanı şeması (`db/init.sql`) PostgreSQL ilk açıldığında otomatik uygulanır.
-`frontend/index.html` içindeki `API_KEY` değeri `.env` dosyasındaki
-`N8N_API_KEY` ile aynı olmalıdır.
+The database schema (`db/init.sql`) is applied automatically when PostgreSQL starts
+for the first time. The `API_KEY` value in `frontend/index.html` must match
+`N8N_API_KEY` in the `.env` file.
 
-## Dokümantasyon
+## Documentation
 
-Proje raporu: [Türkçe](docs/is-ilani-aday-eslestirme-rapor-TR.docx) ·
-[English](docs/job-candidate-matching-report-EN.docx)
+Project report: [English](docs/job-candidate-matching-report-EN.docx) ·
+[Türkçe](docs/is-ilani-aday-eslestirme-rapor-TR.docx)
