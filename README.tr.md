@@ -50,10 +50,18 @@ docker compose up -d
 | PostgreSQL | localhost:5432 |
 
 Veritabanı şeması (`db/init.sql`) PostgreSQL ilk açıldığında otomatik uygulanır.
-`frontend/index.html` içindeki `API_KEY` değeri `.env` dosyasındaki
-`N8N_API_KEY` ile aynı olmalıdır.
+Web arayüzü ilk istekte API anahtarını sorar; `.env` dosyasındaki
+`N8N_API_KEY` değerini girin. Anahtar koda yazılmaz, yalnızca o tarayıcı
+sekmesinde (`sessionStorage`) tutulur ve yanlışsa yeniden sorulur.
+
+> **Not:** Bu yapı yerel geliştirme içindir. Arayüzü herkese açık bir sunucuda
+> yayınlayacaksanız anahtar tarayıcıya hiç gönderilmemeli; istekleri anahtarı
+> sunucu tarafında ekleyen bir ara katman (ör. nginx `proxy_set_header`)
+> üzerinden geçirin.
 
 ## Dokümantasyon
 
-Proje raporu: [Türkçe](docs/is-ilani-aday-eslestirme-rapor-TR.docx) ·
-[English](docs/job-candidate-matching-report-EN.docx)
+Proje raporu (PDF): [Türkçe](docs/is-ilani-aday-eslestirme-rapor-TR.pdf) ·
+[English](docs/job-candidate-matching-report-EN.pdf)
+— düzenlenebilir sürümler: [TR .docx](docs/is-ilani-aday-eslestirme-rapor-TR.docx) ·
+[EN .docx](docs/job-candidate-matching-report-EN.docx)

@@ -49,10 +49,18 @@ docker compose up -d
 | PostgreSQL | localhost:5432 |
 
 The database schema (`db/init.sql`) is applied automatically when PostgreSQL starts
-for the first time. The `API_KEY` value in `frontend/index.html` must match
-`N8N_API_KEY` in the `.env` file.
+for the first time. The web interface asks for the API key on the first request; enter the
+`N8N_API_KEY` value from `.env`. The key is not stored in the code; it is kept
+only in that browser tab (`sessionStorage`) and asked again if it is wrong.
+
+> **Note:** This setup is meant for local development. If you publish the
+> interface on a public server, the key should never reach the browser; route
+> requests through a layer that adds the key on the server side (e.g. nginx
+> `proxy_set_header`).
 
 ## Documentation
 
-Project report: [English](docs/job-candidate-matching-report-EN.docx) ·
-[Türkçe](docs/is-ilani-aday-eslestirme-rapor-TR.docx)
+Project report (PDF): [English](docs/job-candidate-matching-report-EN.pdf) ·
+[Türkçe](docs/is-ilani-aday-eslestirme-rapor-TR.pdf)
+— editable versions: [EN .docx](docs/job-candidate-matching-report-EN.docx) ·
+[TR .docx](docs/is-ilani-aday-eslestirme-rapor-TR.docx)
