@@ -59,6 +59,29 @@ sekmesinde (`sessionStorage`) tutulur ve yanlışsa yeniden sorulur.
 > sunucu tarafında ekleyen bir ara katman (ör. nginx `proxy_set_header`)
 > üzerinden geçirin.
 
+## Eşleşme Mantığı ve Testler
+
+Eşleşme kuralı veritabanında `find_new_matches(min_score)` fonksiyonudur
+(`db/init.sql`): aktif ilanlar × adaylar arasında kosinüs benzerliği eşiği
+(varsayılan 0.75) geçen, `matches` tablosunda henüz kaydı olmayan ve vektörü boş
+ya da sıfır olmayan çiftler, en yüksek skor önce. N8n akışı
+`SELECT * FROM find_new_matches(0.75);` çağırır. Bir çift yalnızca bir kez
+kaydedilebilir (`candidate_id, job_id` üzerinde benzersiz indeks); böylece aynı ilan için adaya iki kez e-posta gitmez.
+
+```bash
+docker compose up -d --wait postgres
+docker compose exec -T postgres psql -U postgres -d jobmatching -v ON_ERROR_STOP=1 -f - < tests/matching_test.sql
+```
+
+GitHub Actions her push'ta `docker-compose.yml` dosyasını doğrular ve bu testleri çalıştırır.
+
+> **Mevcut veritabanı:** `init.sql` yalnızca ilk açılışta çalışır. Yeni fonksiyonu
+> ve indeksleri var olan bir volume'a uygulamak için önce eski ivfflat indekslerini
+> silin (`DROP INDEX candidates_embedding_idx, jobs_embedding_idx;`), sonra
+> `docker compose exec -T postgres psql -U postgres -d jobmatching -f - < db/init.sql`
+> çalıştırın. `matches` tablosunda tekrarlanan çiftler varsa önce onları silin;
+> yoksa benzersiz indeks oluşturulamaz.
+
 ## Dokümantasyon
 
 Proje raporu (PDF): [Türkçe](docs/is-ilani-aday-eslestirme-rapor-TR.pdf) ·

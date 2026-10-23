@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  compose-ve-eslesme:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: docker compose yapılandırması
+        run: |
+          docker compose config -q
+          docker compose --env-file .env.example config -q
+
+      # Compose'daki imajla ve init.sql bağlamasıyla gerçek veritabanı kurulur
+      - name: PostgreSQL + pgvector başlat
+        run: docker compose up -d --wait postgres
+
+      # pg_isready, init.sql çalışırken de hazır görünebilir; şemanın
+      # son öğesi (find_new_matches) oluşana kadar beklenir
+      - name: init.sql tamamlanana kadar bekle
+        run: |
+          for i in $(seq 1 30); do
+            if docker compose exec -T postgres psql -U postgres -d jobmatching -tAc \
+                 "SELECT 1 FROM pg_proc WHERE proname = 'find_new_matches'" 2>/dev/null | grep -q 1; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker compose logs postgres
+          exit 1
+
+      - name: Eşleşme mantığı testleri
+        run: docker compose exec -T postgres psql -U postgres -d jobmatching -v ON_ERROR_STOP=1 -f - < tests/matching_test.sql
+
+      - name: Hata durumunda veritabanı günlüğü
+        if: failure()
+        run: docker compose logs postgres

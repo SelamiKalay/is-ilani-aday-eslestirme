@@ -58,6 +58,29 @@ only in that browser tab (`sessionStorage`) and asked again if it is wrong.
 > requests through a layer that adds the key on the server side (e.g. nginx
 > `proxy_set_header`).
 
+## Matching Logic and Tests
+
+The matching rule lives in the database as `find_new_matches(min_score)`
+(`db/init.sql`): active jobs × candidates with cosine similarity ≥ the threshold
+(default 0.75), skipping pairs already stored in `matches` and vectors that are
+missing or all-zero, highest score first. The n8n flow calls
+`SELECT * FROM find_new_matches(0.75);`. A pair can be stored only once
+(unique index on `candidate_id, job_id`), so no candidate is e-mailed twice for the same job.
+
+```bash
+docker compose up -d --wait postgres
+docker compose exec -T postgres psql -U postgres -d jobmatching -v ON_ERROR_STOP=1 -f - < tests/matching_test.sql
+```
+
+GitHub Actions validates `docker-compose.yml` and runs these tests on every push.
+
+> **Existing databases:** `init.sql` runs only on the first start. To apply the
+> new function and indexes to an existing volume, run
+> `docker compose exec -T postgres psql -U postgres -d jobmatching -f - < db/init.sql`
+> (the old ivfflat indexes must be dropped first:
+> `DROP INDEX candidates_embedding_idx, jobs_embedding_idx;`). If `matches` already
+> holds duplicate pairs, delete them first or the unique index cannot be created.
+
 ## Documentation
 
 Project report (PDF): [English](docs/job-candidate-matching-report-EN.pdf) ·
